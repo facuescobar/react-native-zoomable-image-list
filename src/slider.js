@@ -29,10 +29,22 @@ export default class Slider extends Component {
   }
 
   _renderSliderItem({item: image, index}) {
+    let preload = false;
+    if (
+        index >= (this.state.index - 2)
+        && index <= (this.state.index + 2)
+      ) {
+      preload = true;
+    }
+
+
     return (
       <Slide
         image={image}
         bounds={this.state.bounds}
+        index={index}
+        isActive={this.state.index===index}
+        preload={preload}
       />
     );
   }
@@ -51,6 +63,22 @@ export default class Slider extends Component {
     };
   }
 
+  _onImageScroll(e) {
+    const contentOffset = e.nativeEvent.contentOffset;
+    const viewSize = e.nativeEvent.layoutMeasurement;
+
+    // Divide the horizontal offset by the width of the view to see which page is visible
+    const newIndex = Math.floor(contentOffset.x / viewSize.width);
+    if (this.state.index !== newIndex && this.props.images[newIndex]) {
+      // console.log('CurrentIndex', newIndex, this.props.images[newIndex])
+      console.log('CurrentIndex', newIndex)
+      this.setState({
+        index: newIndex,
+      });
+    }
+  }
+
+
   render() {
     const {images} = this.props;
 
@@ -64,6 +92,7 @@ export default class Slider extends Component {
         initialScrollIndex={this.state.index}
         getItemLayout={this._getImageLayout.bind(this)}
         bounces={true}
+        onMomentumScrollEnd={this._onImageScroll.bind(this)}
       />
     );
   }

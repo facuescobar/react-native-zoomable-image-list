@@ -11,6 +11,38 @@ import {
 
 export default class Slide extends Component {
 
+
+  state= {
+    width: 0,
+    height: 0,
+  }
+
+  zoomScale = 1;
+
+  componentWillMount() {
+    const {bounds, image} = this.props;
+
+    const imageScale = this._scaleImage(
+      bounds.width, bounds.height,
+      image.width, image.height
+    );
+
+    this.setState({
+      width: imageScale.width,
+      height: imageScale.height,
+    });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!nextProps.isActive && this.zoomScale !== 1){
+      console.log('SliderPreload:', nextProps.index, this.refs)
+      this.refs.slideView.scrollResponderZoomTo({
+        width: this.state.width,
+        height: this.state.height,
+      })
+    }
+  }
+
   _scaleImage(
     containerWidth,
     containerHeight,
@@ -28,36 +60,54 @@ export default class Slide extends Component {
     };
   }
 
+  onScrollUpdate (event) {
+    // console.log(event.nativeEvent.zoomScale);
+    this.zoomScale= event.nativeEvent.zoomScale;
+  }
+
   _renderImage() {
-    const {bounds, image} = this.props;
-
-    const imageScale = this._scaleImage(
-      bounds.width, bounds.height,
-      image.width, image.height
-    );
-
-    const imageStyles = {
-      width: imageScale.width,
-      height: imageScale.height,
-    };
+    const {image} = this.props;
+    // const {bounds, image} = this.props;
+    //
+    // const imageScale = this._scaleImage(
+    //   bounds.width, bounds.height,
+    //   image.width, image.height
+    // );
+    //
+    // const imageStyles = {
+    //   width: imageScale.width,
+    //   height: imageScale.height,
+    // };
 
     return (
       <ScrollView
+        ref='slideView'
         contentContainerStyle={[
           SlideStyles.scrollView,
-          imageStyles,
         ]}
+        zoomScale={1}
         centerContent={true}
         minimumZoomScale={1.0}
         maximumZoomScale={3.5}
         horizontal={true}
         bounces={true}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        onScroll={this.onScrollUpdate.bind(this)}
+        scrollEventThrottle={16}
+
       >
         <Image
           source={{
             uri: image.url,
           }}
-          style={imageStyles}
+          style={[
+            SlideStyles.image,
+            {
+              width: this.state.width,
+              height: this.state.height
+            }
+          ]}
         />
       </ScrollView>
     )
@@ -87,8 +137,7 @@ export default class Slide extends Component {
 
 const SlideStyles = StyleSheet.create({
   imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'darkorange',
   },
   scrollView: {
     alignItems: 'center',
@@ -96,24 +145,7 @@ const SlideStyles = StyleSheet.create({
     backgroundColor: 'darkcyan'
   },
   image: {
-    alignSelf: 'center',
-  },
-  imageError: {
-    alignSelf: 'center',
-  },
-  imageErrorText: {
-    fontSize: 12,
-    color: '#ffffff',
-    alignSelf: 'center',
-  },
-  imageErrorButton: {
-    padding: 20 * 2,
-    fontSize: 12,
-    color: '#999999',
-    alignSelf: 'center',
-  },
-  activityIndicator: {
-    position: 'absolute',
-    alignSelf: 'center',
+    backgroundColor: '#000000'
+    // alignSelf: 'center',
   },
 });
